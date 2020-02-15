@@ -32,7 +32,6 @@ class QapConstEnv(gym.Env):
                 k+=1
 
         # contatore delle mosse effettuate
-        self.count = 0
         # Inizializza la matrice dei prodotti
         path = os.getenv("HOME")+"/prodLocFolder/prodLocFile"+str(self.num_prod)+".txt"
         self.matrix_pl = self.get_location_matrix(path,self.num_prod)
@@ -44,22 +43,20 @@ class QapConstEnv(gym.Env):
         for i in range(self.num_loc):
             self.matrix_dist[i,i] = i
         self.matrix_dist = self.matrix_dist/np.max(self.matrix_dist)
-        #Crea la matrice finale (l'osservazione su cui opera l'agente)
-        matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
-        self.matrix_wd = matrix_dp*self.matrix_fq
-
-        self.current_sum = np.sum(self.matrix_wd)
-        self.initial_sum = self.current_sum
 
         self.action_space = spaces.Discrete(len(self.dict))
-
         low = np.zeros(self.num_prod*self.num_prod)
         high = np.full(self.num_prod*self.num_prod,1)
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
-        self.mff_sum = self.compute_mff_sum(matrix_dp)
 
     def reset(self):
-        self.__init__()
+        #Crea la matrice finale (l'osservazione su cui opera l'agente)
+        matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
+        self.matrix_wd = matrix_dp*self.matrix_fq
+        self.current_sum = np.sum(self.matrix_wd)
+        self.initial_sum = self.current_sum
+        self.mff_sum = self.compute_mff_sum(matrix_dp)
+        self.count = 0
         return np.array(self.matrix_wd).flatten()
 
 
