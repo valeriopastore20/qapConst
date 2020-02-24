@@ -49,7 +49,7 @@ class QapConstEnv(gym.Env):
         self.done = False
 
     def reset(self):
-        self.matrix_pl = self.matrix_pl_original
+        self.matrix_pl = self.matrix_pl_original.copy()
         matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
         self.matrix_wd = matrix_dp*self.matrix_fq
         self.current_sum = np.sum(self.matrix_wd)
