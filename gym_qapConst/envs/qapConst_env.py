@@ -84,7 +84,7 @@ class QapConstEnv(gym.Env):
         reward = self.mff_sum - sum
         self.current_sum = sum
         self.count+=1
-        if(self.count > self.num_prod+10):
+        if(self.count >= self.num_prod+10):
             self.done = True
             self.final_sum = sum
         return np.array(self.matrix_wd).flatten(), reward, self.done, {}
