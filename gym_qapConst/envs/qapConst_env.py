@@ -31,6 +31,7 @@ class QapConstEnv(gym.Env):
                 k+=1
         path = os.getenv("HOME")+"/prodLocFolder/prodLocFile"+str(self.num_prod)+".txt"
         self.matrix_pl_original = self.get_location_matrix(path,self.num_prod)
+        self.matrix_pl = self.matrix_pl_original.copy()
         # contatore delle mosse effettuate
         # Inizializza la matrice dei prodotti
         #inizializza matrice delle distanze tra locazioni (e' quadrata simmetrica e sulla diagonale c'e' la distanza con l'uscita)
@@ -46,6 +47,13 @@ class QapConstEnv(gym.Env):
         low = np.zeros(self.num_prod*self.num_prod)
         high = np.full(self.num_prod*self.num_prod,1)
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
+
+
+        matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
+        self.matrix_wd = matrix_dp*self.matrix_fq
+        self.current_sum = np.sum(self.matrix_wd)
+        self.initial_sum = np.sum(self.matrix_wd)
+        self.mff_sum = self.compute_mff_sum(matrix_dp)
         self.done = False
 
     def reset(self):
@@ -53,8 +61,6 @@ class QapConstEnv(gym.Env):
         matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
         self.matrix_wd = matrix_dp*self.matrix_fq
         self.current_sum = np.sum(self.matrix_wd)
-        self.initial_sum = np.sum(self.matrix_wd)
-        self.mff_sum = self.compute_mff_sum(matrix_dp)
         self.count = 0
         return np.array(self.matrix_wd).flatten()
 
@@ -81,10 +87,10 @@ class QapConstEnv(gym.Env):
         sum = np.sum(self.matrix_wd)
         #calcola il reward come differenza tra la somma iniziale e la somma ottenuta ora. Quindi se questo valore e' positivo vuol dire che la somma totale
         # e' stata ridotta, altrimenti e' stata aumentata
-        reward = self.mff_sum - sum
+        reward = (self.mff_sum - sum)
         self.current_sum = sum
         self.count+=1
-        if(self.count >= self.num_prod+10):
+        if(self.count == self.num_prod+10):
             self.done = True
             self.final_sum = sum
         return np.array(self.matrix_wd).flatten(), reward, self.done, {}
