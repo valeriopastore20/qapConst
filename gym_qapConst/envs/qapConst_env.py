@@ -29,11 +29,10 @@ class QapConstEnv(gym.Env):
             for b in range(a,self.num_prod):
                 self.dict.update({k : [a,b]})
                 k+=1
+        # Inizializza la matrice dei prodotti
         path = os.getenv("HOME")+"/prodLocFolder/prodLocFile"+str(self.num_prod)+".txt"
         self.matrix_pl_original = self.get_location_matrix(path,self.num_prod)
         self.matrix_pl = self.matrix_pl_original.copy()
-        # contatore delle mosse effettuate
-        # Inizializza la matrice dei prodotti
         #inizializza matrice delle distanze tra locazioni (e' quadrata simmetrica e sulla diagonale c'e' la distanza con l'uscita)
         self.matrix_dist = np.zeros((self.num_loc, self.num_loc), int)
         for i in range(0,self.num_loc):
@@ -43,18 +42,17 @@ class QapConstEnv(gym.Env):
             self.matrix_dist[i,i] = i
         self.matrix_dist = self.matrix_dist/np.max(self.matrix_dist)
 
-        self.action_space = spaces.Discrete(len(self.dict))
-        low = np.zeros(self.num_prod*self.num_prod)
-        high = np.full(self.num_prod*self.num_prod,1)
-        self.observation_space = spaces.Box(low, high, dtype=np.float32)
-
-
         matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
         self.matrix_wd = matrix_dp*self.matrix_fq
-        self.current_sum = np.sum(self.matrix_wd)
         self.initial_sum = np.sum(self.matrix_wd)
         self.mff_sum = self.compute_mff_sum(matrix_dp)
         self.done = False
+
+        self.action_space = spaces.Discrete(len(self.dict))
+        low = np.zeros(self.num_prod*self.num_loc)
+        high = np.full(self.num_prod*self.num_loc,1)
+        self.observation_space = spaces.Box(low, high, dtype=np.float32)
+
 
     def reset(self):
         self.matrix_pl = self.matrix_pl_original.copy()
@@ -66,9 +64,7 @@ class QapConstEnv(gym.Env):
 
 
     def render(self):
-        #np.set_printoptions(threshold=3000)
         print("R E N D E R")
-        #print(self.matrix_wd)
         print("INITIAL SUM: {0:.2f}".format(self.initial_sum))
         print("CURRENT SUM: {0:.2f}".format(self.current_sum))
         print("CURRENT IMPROVEMENT: {0:.2f}%".format((self.initial_sum-self.current_sum)/self.initial_sum*100))
@@ -84,9 +80,8 @@ class QapConstEnv(gym.Env):
         self.matrix_pl[[action[0], action[1]]] = self.matrix_pl[[action[1], action[0]]]
         matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
         self.matrix_wd = matrix_dp*self.matrix_fq
+        #calcola il reward come differenza tra la somma "ottimale" e la somma ottenuta
         sum = np.sum(self.matrix_wd)
-        #calcola il reward come differenza tra la somma iniziale e la somma ottenuta ora. Quindi se questo valore e' positivo vuol dire che la somma totale
-        # e' stata ridotta, altrimenti e' stata aumentata
         reward = (self.mff_sum - sum)
         self.current_sum = sum
         self.count+=1
