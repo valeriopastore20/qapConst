@@ -3,6 +3,7 @@ import numpy as np
 import fis_generator as fisg
 import os
 import sys 
+import math
 from gym import spaces
 
 class QapConstEnv(gym.Env):
@@ -34,12 +35,20 @@ class QapConstEnv(gym.Env):
         self.matrix_pl_original = self.get_location_matrix(path,self.num_prod)
         self.matrix_pl = self.matrix_pl_original.copy()
         #inizializza matrice delle distanze tra locazioni (e' quadrata simmetrica e sulla diagonale c'e' la distanza con l'uscita)
-        self.matrix_dist = np.zeros((self.num_loc, self.num_loc), int)
-        for i in range(0,self.num_loc):
-            for j in range(i+1,self.num_loc):
-                self.matrix_dist[i,j] = self.matrix_dist[j,i] = j-i
+        step = int(math.sqrt(self.num_prod))
+        self.matrix_dist = np.zeros((self.num_loc,self.num_loc), dtype=int)
+        k = 1
+        i = 0
+        while i < self.num_loc:
+            for j in range(step):
+                self.matrix_dist[i,i] = j+k
+                i+=1
+            k+=1
         for i in range(self.num_loc):
-            self.matrix_dist[i,i] = i
+            for j in range(i+1,self.num_loc):
+                x = abs(int(i/step) - int(j/step))
+                y = abs(int(i%step) - int(j%step))
+                self.matrix_dist[i,j] = self.matrix_dist[j,i] = x + y
         self.matrix_dist = self.matrix_dist/np.max(self.matrix_dist)
 
         matrix_dp = np.dot(np.dot(self.matrix_pl,self.matrix_dist),np.transpose(self.matrix_pl))
@@ -98,13 +107,13 @@ class QapConstEnv(gym.Env):
         diag.setflags(write=1)
         min_ind = np.argmin(diag,0)
         matrix_mff = self.matrix_pl[min_ind]
-        diag[min_ind] = 90
+        diag[min_ind] = 9000
         for i in range(1,self.num_prod):
             min_ind = np.argmin(diag,0)
-            if diag[min_ind] == 90:
+            if diag[min_ind] == 9000:
                 break
             matrix_mff = np.vstack((matrix_mff,self.matrix_pl[min_ind]))
-            diag[min_ind] = 90
+            diag[min_ind] = 9000
         matrix_dp = np.dot(np.dot(matrix_mff,self.matrix_dist),np.transpose(matrix_mff))
         matrix_wd = matrix_dp*self.matrix_fq
         mff_sum = np.sum(matrix_wd)
