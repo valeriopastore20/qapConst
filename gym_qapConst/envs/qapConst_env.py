@@ -91,10 +91,10 @@ class QapConstEnv(gym.Env):
         self.matrix_wd = matrix_dp*self.matrix_fq
         #calcola il reward come differenza tra la somma "ottimale" e la somma ottenuta
         sum = np.sum(self.matrix_wd)
-        reward = (self.mff_sum - sum)
+        reward = (self.current_sum - sum)
         self.current_sum = sum
         self.count+=1
-        if(self.count == self.num_prod+10):
+        if(self.count == self.num_prod+2):
             self.done = True
             self.final_sum = sum
         return np.array(self.matrix_wd).flatten(), reward, self.done, {}
