@@ -56,7 +56,8 @@ class QapConstEnv(gym.Env):
         self.initial_sum = np.sum(self.matrix_wd)
         self.mff_sum = self.compute_mff_sum(matrix_dp)
         self.done = False
-
+        self.final_sum = 1000
+        
         self.action_space = spaces.Discrete(len(self.dict))
         low = np.zeros(self.num_prod*self.num_loc)
         high = np.full(self.num_prod*self.num_loc,1)
