@@ -90,7 +90,7 @@ class QapConstEnv(gym.Env):
         self.matrix_wd = matrix_dp*self.matrix_fq
         #calcola il reward come differenza tra la somma allo stato precedente e la somma allo stato corrente
         sum = np.sum(self.matrix_wd)
-        reward = (self.current_sum - sum)
+        reward = (self.mff_sum - sum)
         self.current_sum = sum
         self.count+=1
         if(self.count == self.max_swaps):
