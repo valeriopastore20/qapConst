@@ -151,8 +151,6 @@ class QapConstEnv(gym.Env):
             freq = k[2]
             fis[p1,p2] = freq
             fis[p2,p1] = freq
-            fis[p1,p1] -= freq
-            fis[p2,p2] -= freq
             line = file.readline()
             k = [int(s) for s in line.split() if s.isdigit()]
         file.close()
